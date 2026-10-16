@@ -15,8 +15,10 @@ app = FastAPI(title="Atlas Claims")
 
 
 @app.get("/claims")
-def read_claims(account: Account = Depends(current_account)):
-    return claims.list_claims(account.id)
+def read_claims(status: str | None = None, account: Account = Depends(current_account)):
+    if status is not None and status not in claims.STATUSES:
+        raise HTTPException(status_code=400, detail=f"Unknown status {status!r}")
+    return claims.list_claims(account.id, status)
 
 
 @app.get("/claims/{claim_id}")
