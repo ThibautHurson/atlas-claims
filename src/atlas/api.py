@@ -6,8 +6,10 @@ may read what.
 """
 
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 
 from atlas import claims, invoices
+from atlas.csv_export import invoice_csv
 from atlas.models import Account
 from atlas.session import current_account
 
@@ -40,3 +42,14 @@ def read_invoice(invoice_id: str, account: Account = Depends(current_account)):
     if invoice is None:
         raise HTTPException(status_code=404, detail="No such invoice")
     return invoice
+
+
+@app.get("/invoices/{invoice_id}.csv", response_class=PlainTextResponse)
+def read_invoice_csv(invoice_id: str, account: Account = Depends(current_account)):
+    invoice = invoices.get_invoice(invoice_id, account.id)
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="No such invoice")
+    return PlainTextResponse(
+        invoice_csv(invoice, invoices.PRICE_PER_CLAIM_CENTS),
+        headers={"Content-Disposition": f'attachment; filename="{invoice.id}.csv"'},
+    )
