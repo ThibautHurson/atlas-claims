@@ -17,10 +17,18 @@ app = FastAPI(title="Atlas Claims")
 
 
 @app.get("/claims")
-def read_claims(status: str | None = None, account: Account = Depends(current_account)):
+def read_claims(
+    status: str | None = None, page: int = 1, account: Account = Depends(current_account)
+):
     if status is not None and status not in claims.STATUSES:
         raise HTTPException(status_code=400, detail=f"Unknown status {status!r}")
-    return claims.list_claims(account.id, status)
+    page_of_claims, total = claims.list_claims(account.id, status, page)
+    return {
+        "claims": page_of_claims,
+        "page": page,
+        "page_size": claims.PAGE_SIZE,
+        "total": total,
+    }
 
 
 @app.get("/claims/{claim_id}")
@@ -60,5 +68,5 @@ def read_dashboard(account: Account = Depends(current_account)):
     return {
         "account": account.name,
         "open_reserve_cents": claims.open_reserve_cents(account.id),
-        "open_claims": len(claims.list_claims(account.id, "open")),
+        "open_claims": claims.list_claims(account.id, "open")[1],
     }
