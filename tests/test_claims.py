@@ -15,3 +15,9 @@ def test_a_claim_carries_its_account():
     )
     assert claim.account_id == "acc-northwind"
     assert claim.reserve_cents == 480_000
+
+
+def test_the_statuses_are_the_ones_the_portal_shows():
+    from atlas.claims import STATUSES
+
+    assert STATUSES == ("open", "under-review", "settled", "declined")

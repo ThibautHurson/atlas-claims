@@ -10,12 +10,27 @@ from atlas.models import Claim
 _COLUMNS = "id, account_id, policy_number, date_of_loss, peril, reserve_cents, status"
 
 
-def list_claims(account_id: str) -> list[Claim]:
-    """Every claim belonging to this account, newest loss first."""
-    rows = fetchall(
-        f"SELECT {_COLUMNS} FROM claims WHERE account_id = %s ORDER BY date_of_loss DESC",
-        (account_id,),
-    )
+#: The statuses a claim can be in. Anything else is a bad request.
+STATUSES = ("open", "under-review", "settled", "declined")
+
+
+def list_claims(account_id: str, status: str | None = None) -> list[Claim]:
+    """Every claim belonging to this account, newest loss first.
+
+    With `status`, only the claims in that status - what the portal asks for
+    when an adjuster picks a tab.
+    """
+    if status is None:
+        rows = fetchall(
+            f"SELECT {_COLUMNS} FROM claims WHERE account_id = %s ORDER BY date_of_loss DESC",
+            (account_id,),
+        )
+    else:
+        rows = fetchall(
+            f"SELECT {_COLUMNS} FROM claims WHERE account_id = %s AND status = %s "
+            "ORDER BY date_of_loss DESC",
+            (account_id, status),
+        )
     return [Claim(**row) for row in rows]
 
 
