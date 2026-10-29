@@ -53,3 +53,12 @@ def read_invoice_csv(invoice_id: str, account: Account = Depends(current_account
         invoice_csv(invoice, invoices.PRICE_PER_CLAIM_CENTS),
         headers={"Content-Disposition": f'attachment; filename="{invoice.id}.csv"'},
     )
+
+
+@app.get("/dashboard")
+def read_dashboard(account: Account = Depends(current_account)):
+    return {
+        "account": account.name,
+        "open_reserve_cents": claims.open_reserve_cents(account.id),
+        "open_claims": len(claims.list_claims(account.id, "open")),
+    }

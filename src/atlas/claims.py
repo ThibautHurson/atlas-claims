@@ -41,3 +41,13 @@ def get_claim(claim_id: str, account_id: str) -> Claim | None:
         (claim_id, account_id),
     )
     return Claim(**row) if row else None
+
+
+def open_reserve_cents(account_id: str) -> int:
+    """What this account currently has reserved against unsettled claims."""
+    row = fetchone(
+        "SELECT COALESCE(SUM(reserve_cents), 0) AS total FROM claims "
+        "WHERE account_id = %s AND status IN ('open', 'under-review')",
+        (account_id,),
+    )
+    return int(row["total"]) if row else 0
