@@ -38,7 +38,7 @@ def read_invoices(account: Account = Depends(current_account)):
 
 @app.get("/invoices/{invoice_id}")
 def read_invoice(invoice_id: str, account: Account = Depends(current_account)):
-    invoice = invoices.get_invoice(invoice_id, account.id)
+    invoice = invoices.get_invoice(invoice_id)
     if invoice is None:
         raise HTTPException(status_code=404, detail="No such invoice")
     return invoice
@@ -46,7 +46,7 @@ def read_invoice(invoice_id: str, account: Account = Depends(current_account)):
 
 @app.get("/invoices/{invoice_id}.csv", response_class=PlainTextResponse)
 def read_invoice_csv(invoice_id: str, account: Account = Depends(current_account)):
-    invoice = invoices.get_invoice(invoice_id, account.id)
+    invoice = invoices.get_invoice(invoice_id)
     if invoice is None:
         raise HTTPException(status_code=404, detail="No such invoice")
     return PlainTextResponse(
