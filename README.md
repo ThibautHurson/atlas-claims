@@ -21,3 +21,8 @@ uv run uvicorn atlas.api:app --reload
 | `src/atlas/claims.py` | reading claims |
 | `src/atlas/invoices.py` | reading and pricing invoices |
 | `src/atlas/db.py` | the connection and two query helpers |
+
+## About this repository
+
+Sample repository used for product demos. Not a real service, not deployed, and
+the accounts, claims and people in it are invented.
