@@ -14,24 +14,33 @@ _COLUMNS = "id, account_id, policy_number, date_of_loss, peril, reserve_cents, s
 STATUSES = ("open", "under-review", "settled", "declined")
 
 
-def list_claims(account_id: str, status: str | None = None) -> list[Claim]:
-    """Every claim belonging to this account, newest loss first.
+#: How many claims one page of the list holds.
+PAGE_SIZE = 50
 
-    With `status`, only the claims in that status - what the portal asks for
-    when an adjuster picks a tab.
+
+def list_claims(
+    account_id: str, status: str | None = None, page: int = 1
+) -> tuple[list[Claim], int]:
+    """One page of this account's claims, newest loss first, and the total.
+
+    The total is what the portal draws its pager from: with `status`, it
+    counts the claims in that status.
     """
+    offset = (page - 1) * PAGE_SIZE
     if status is None:
         rows = fetchall(
-            f"SELECT {_COLUMNS} FROM claims WHERE account_id = %s ORDER BY date_of_loss DESC",
-            (account_id,),
+            f"SELECT {_COLUMNS} FROM claims WHERE account_id = %s "
+            "ORDER BY date_of_loss DESC LIMIT %s OFFSET %s",
+            (account_id, PAGE_SIZE, offset),
         )
     else:
         rows = fetchall(
             f"SELECT {_COLUMNS} FROM claims WHERE account_id = %s AND status = %s "
-            "ORDER BY date_of_loss DESC",
-            (account_id, status),
+            "ORDER BY date_of_loss DESC LIMIT %s OFFSET %s",
+            (account_id, status, PAGE_SIZE, offset),
         )
-    return [Claim(**row) for row in rows]
+    claims = [Claim(**row) for row in rows]
+    return claims, len(claims)
 
 
 def get_claim(claim_id: str, account_id: str) -> Claim | None:
